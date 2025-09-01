@@ -1,20 +1,29 @@
-import express from "express";
-import { createMovie, updateMovie, deleteMovie, listMovies, getMovie } from "../controllers/movieController.js";
-import { movieCreateValidator } from "../utils/validators.js";
-import { validationResult } from "express-validator";
-
+const express = require('express');
 const router = express.Router();
+const contentController = require('../controllers/content.controller');
+const { contentValidation, mongoIdParamValidation } = require('../utils/validators');
+const { requireAuth } = require('../middlewares/auth.middleware');
 
-router.get("/", listMovies);
-router.get("/:id", getMovie);
+/**
+ * @swagger
+ * tags:
+ *   name: Content
+ *   description: Endpoints para gestión de películas, series y animes
+ */
 
-router.post("/", movieCreateValidator, (req, res, next) => {
-  const errors = validationResult(req);
-  if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
-  next();
-}, createMovie);
+// Crear contenido
+router.post('/', requireAuth, contentValidation, contentController.createContent);
 
-router.put("/:id", updateMovie);
-router.delete("/:id", deleteMovie);
+// Listar todo el contenido
+router.get('/', contentController.getAllContent);
 
-export default router;
+// Obtener contenido por ID
+router.get('/:id', mongoIdParamValidation, contentController.getContentById);
+
+// Actualizar contenido
+router.put('/:id', requireAuth, contentValidation, contentController.updateContent);
+
+// Eliminar contenido
+router.delete('/:id', requireAuth, contentController.deleteContent);
+
+module.exports = router;
