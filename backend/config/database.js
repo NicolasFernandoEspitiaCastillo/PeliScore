@@ -1,20 +1,39 @@
-import { MongoClient } from "mongodb";
+const { MongoClient } = require('mongodb');
 
-const uri = "mongodb://localhost:27017"; // cámbialo si tu conexión es diferente
-const client = new MongoClient(uri);
-
+// Instancia del cliente de MongoDB. Se crea una sola vez.
+const client = new MongoClient(process.env.MONGO_URI);
 let db;
 
-export const connectDB = async () => {
-  if (!db) {
+/**
+ * Establece la conexión con la base de datos MongoDB.
+ * Esta función debe llamarse una vez al iniciar el servidor.
+ */
+async function connectDB() {
+    // Si ya existe una conexión, no hace nada.
+    if (db) return;
     try {
-      await client.connect();
-      db = client.db("Karenflix"); // nombre de tu base de datos
-      console.log("✅ Conectado a MongoDB");
-    } catch (err) {
-      console.error("❌ Error al conectar a MongoDB:", err);
-      throw err;
+        // Conecta el cliente al servidor.
+        await client.connect();
+        db = client.db(process.env.DB_NAME);
+        console.log('✅ Conexión a MongoDB establecida correctamente.');
+    } catch (error) {
+        console.error('❌ Error al conectar con MongoDB:', error);
+        // Si la conexión falla, termina el proceso de la aplicación.
+        process.exit(1);
     }
-  }
-  return db;
-};
+}
+
+/**
+ * Devuelve la instancia de la base de datos para realizar operaciones.
+ * @returns {Db} Instancia de la base de datos.
+ */
+const getDB = () => db;
+
+/**
+ * Devuelve la instancia del cliente de MongoDB.
+ * Es necesario para gestionar sesiones y transacciones.
+ * @returns {MongoClient} Instancia del cliente.
+ */
+const getClient = () => client;
+
+module.exports = { connectDB, getDB, getClient };

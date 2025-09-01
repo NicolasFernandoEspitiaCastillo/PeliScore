@@ -1,49 +1,66 @@
-import { connectDB } from "../config/db.js";
-import bcrypt from "bcryptjs";
-import jwt from "jsonwebtoken";
+const jwt = require('jsonwebtoken');
+const bcrypt = require('bcrypt');
+const userModel = require('../models/user.model');
+const CustomError = require('../utils/customError');
 
-export const register = async (req, res) => {
-  try {
-    const db = await connectDB();
-    const { nombre, email, password, rol } = req.body;
+// Registro de usuario
+const register = async (req, res, next) => {
+    try {
+        const { username, email, password } = req.body;
 
-    const existe = await db.collection("users").findOne({ email });
-    if (existe) return res.status(400).json({ error: "Email ya registrado" });
+        const existingUser = await userModel.findUserByEmail(email);
+        if (existingUser) {
+            return next(new CustomError('El correo electrónico ya está registrado.', 409));
+        }
 
-    const hashed = await bcrypt.hash(password, 10);
+        const hashedPassword = await bcrypt.hash(password, 10);
+        await userModel.createUser({ username, email, password: hashedPassword });
 
-    const result = await db.collection("users").insertOne({
-      nombre,
-      email,
-      password: hashed,
-      rol: rol || "usuario",
-    });
-
-    res.status(201).json(result);
-  } catch {
-    res.status(500).json({ error: "Error al registrar usuario" });
-  }
+        res.status(201).json({ message: 'Usuario registrado exitosamente.' });
+    } catch (error) {
+        next(error);
+    }
 };
 
-export const login = async (req, res) => {
-  try {
-    const db = await connectDB();
-    const { email, password } = req.body;
+// Login de usuario
+const login = async (req, res, next) => {
+    try {
+        const { email, password } = req.body;
 
-    const user = await db.collection("users").findOne({ email });
-    if (!user) return res.status(404).json({ error: "Usuario no encontrado" });
+        const user = await userModel.findUserByEmail(email);
+        if (!user) {
+            return next(new CustomError('Credenciales inválidas.', 401));
+        }
 
-    const match = await bcrypt.compare(password, user.password);
-    if (!match) return res.status(400).json({ error: "Credenciales inválidas" });
+        const isMatch = await bcrypt.compare(password, user.password);
+        if (!isMatch) {
+            return next(new CustomError('Credenciales inválidas.', 401));
+        }
 
-    const token = jwt.sign(
-      { id: user._id, rol: user.rol },
-      process.env.JWT_SECRET,
-      { expiresIn: process.env.JWT_EXPIRES_IN || "7d" }
-    );
+        const payload = { id: user._id, role: user.role };
+        const token = jwt.sign(payload, process.env.JWT_SECRET, {
+            expiresIn: process.env.JWT_EXPIRES_IN,
+        });
 
-    res.json({ token });
-  } catch {
-    res.status(500).json({ error: "Error al iniciar sesión" });
-  }
+        res.json({
+            message: 'Inicio de sesión exitoso.',
+            token: `Bearer ${token}`,
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
+// Perfil de usuario autenticado
+const getProfile = (req, res, next) => {
+    if (!req.user) {
+        return next(new CustomError('No se encontró el usuario del token.', 404));
+    }
+    res.json(req.user);
+};
+
+module.exports = {
+    register,
+    login,
+    getProfile,
 };
