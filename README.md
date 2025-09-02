@@ -180,3 +180,7 @@ Listado de películas
 Detalle de película con reseñas
 
 Panel admin
+
+-----
+
+Para leer el pdf toca descargar esta extensión: vscode-pdf

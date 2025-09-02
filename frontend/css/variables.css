@@ -1,0 +1,24 @@
+:root{
+    --color-1: #eee;
+}
+
+@font-face{
+
+    font-family:'Matemasie-Regular' ;
+     src: url("../storage/fonts/Matemasie-Regular.ttf");
+     
+}
+
+@font-face{
+
+    font-family:'RubikVinyl-Regular' ;
+     src: url("../storage/fonts/RubikVinyl-Regular.ttf");
+     
+}
+
+@font-face{
+
+    font-family:'Fredoka-VariableFont' ;
+     src: url("../storage/fonts/Fredoka-VariableFont_wdth\,wght.ttf");
+     
+}
