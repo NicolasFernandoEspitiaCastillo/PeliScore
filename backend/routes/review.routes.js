@@ -1,29 +1,17 @@
-const express = require('express');
-const router = express.Router();
-const reviewController = require('../controllers/review.controller');
-const { reviewValidation, mongoIdParamValidation } = require('../utils/validators');
-const { requireAuth } = require('../middlewares/auth.middleware');
+import { Router } from "express";
+import {
+  getReviewsByMovie,
+  createReview,
+  updateReview,
+  deleteReview
+} from "../controllers/review.controller.js";
+import authMiddleware from "../middlewares/auth.middleware.js";
 
-/**
- * @swagger
- * tags:
- *   name: Reviews
- *   description: Endpoints para reseñas de usuarios
- */
+const router = Router();
 
-// Crear reseña
-router.post('/', requireAuth, reviewValidation, reviewController.createReview);
+router.get("/:movieId", getReviewsByMovie);
+router.post("/:movieId", authMiddleware, createReview);
+router.put("/:id", authMiddleware, updateReview);
+router.delete("/:id", authMiddleware, deleteReview);
 
-// Listar reseñas de un contenido
-router.get('/content/:id', mongoIdParamValidation, reviewController.getReviewsByContent);
-
-// Obtener reseña por ID
-router.get('/:id', mongoIdParamValidation, reviewController.getReviewById);
-
-// Actualizar reseña
-router.put('/:id', requireAuth, reviewValidation, reviewController.updateReview);
-
-// Eliminar reseña
-router.delete('/:id', requireAuth, reviewController.deleteReview);
-
-module.exports = router;
+export default router;

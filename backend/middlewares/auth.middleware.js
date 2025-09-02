@@ -1,21 +1,20 @@
-const passport = require('passport');
-const CustomError = require('../utils/customError');
+const jwt = require("jsonwebtoken");
 
-const requireAuth = (req, res, next) => {
-    passport.authenticate('jwt', { session: false }, (err, user, info) => {
-        if (err) {
-            return next(err);
-        }
-        if (!user) {
-            const message = info && info.message ? info.message : 'Acceso no autorizado.';
-            return next(new CustomError(message, 401));
-        }
-        req.user = user;
-        next();
-    })(req, res, next);
+const authMiddleware = (req, res, next) => {
+  const authHeader = req.headers["authorization"];
+  const token = authHeader && authHeader.split(" ")[1];
+
+  if (!token) {
+    return res.status(401).json({ message: "Acceso denegado, token requerido" });
+  }
+
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    req.user = decoded; // adjuntamos el payload del token al request
+    next();
+  } catch (error) {
+    return res.status(403).json({ message: "Token inválido o expirado" });
+  }
 };
 
-// --- PUNTO CLAVE: La exportación debe ser un objeto que contenga la función. ---
-module.exports = {
-    requireAuth
-};
+module.exports = authMiddleware;

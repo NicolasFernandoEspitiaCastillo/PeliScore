@@ -1,54 +1,37 @@
-// helper: no mongoose. We will just export the collection name and optionally indexes creation function.
-const { getDB } = require('../config/database');
-const { ObjectId } = require('mongodb');
+// backend/models/user.model.js
 
-// Función auxiliar para obtener la colección de usuarios.
-const getCollection = () => getDB().collection('users');
+const mongoose = require('mongoose');
 
-/**
- * Crea un nuevo usuario en la base de datos.
- * @param {object} userData - Datos del usuario { username, email, password }.
- * @returns {Promise<ObjectId>} El ID del usuario insertado.
- */
-const createUser = async ({ username, email, password }) => {
-    const collection = getCollection();
-    const result = await collection.insertOne({
-        username,
-        email: email.toLowerCase(), // Guardar email en minúsculas para consistencia.
-        password, // La contraseña ya debe venir hasheada desde el controlador.
-        role: 'user', // Asignar rol de 'user' por defecto.
-        createdAt: new Date(),
-    });
-    return result.insertedId;
-};
+// 1. Definimos el esquema (la estructura de los datos)
+const UserSchema = new mongoose.Schema({
+  username: {
+    type: String,
+    required: [true, 'El nombre de usuario es obligatorio'],
+    unique: true,
+    trim: true,
+  },
+  email: {
+    type: String,
+    required: [true, 'El correo electrónico es obligatorio'],
+    unique: true,
+    trim: true,
+    lowercase: true,
+  },
+  password: {
+    type: String,
+    required: [true, 'La contraseña es obligatoria'],
+  },
+  role: {
+    type: String,
+    enum: ['user', 'admin'], // Solo permite estos dos valores
+    default: 'user', // Valor por defecto
+  },
+  createdAt: {
+    type: Date,
+    default: Date.now,
+  },
+});
 
-/**
- * Busca un usuario por su dirección de correo electrónico.
- * @param {string} email - El correo electrónico del usuario a buscar.
- * @returns {Promise<object|null>} El documento del usuario o null si no se encuentra.
- */
-const findUserByEmail = async (email) => {
-    const collection = getCollection();
-    // Devuelve el documento completo, incluyendo la contraseña para la verificación en el login.
-    return await collection.findOne({ email: email.toLowerCase() });
-};
-
-/**
- * Busca un usuario por su ID.
- * @param {string} id - El ID del usuario.
- * @returns {Promise<object|null>} El documento del usuario sin la contraseña.
- */
-const findUserById = async (id) => {
-    const collection = getCollection();
-    // Usa una proyección para excluir el campo 'password' por seguridad.
-    return await collection.findOne(
-        { _id: new ObjectId(id) },
-        { projection: { password: 0 } }
-    );
-};
-
-module.exports = {
-    createUser,
-    findUserByEmail,
-    findUserById,
-};
+// 2. Creamos y exportamos el modelo a partir del esquema
+// Mongoose usará este modelo para interactuar con la colección 'users' en MongoDB
+module.exports = mongoose.model('User', UserSchema);

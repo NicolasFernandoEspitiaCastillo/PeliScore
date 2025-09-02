@@ -1,22 +1,11 @@
-const express = require('express');
+const express = require("express");
+const { register, login } = require("../controllers/auth.controller");
+const { registerValidator, loginValidator } = require("../utils/validators");
+
 const router = express.Router();
-const authController = require('../controllers/auth.controller');
-const { requireAuth } = require('../middlewares/auth.middleware');
 
-/**
- * @swagger
- * tags:
- *   name: Auth
- *   description: Endpoints de autenticación de usuarios
- */
-
-// Registro
-router.post('/register', authController.register);
-
-// Login
-router.post('/login', authController.login);
-
-// Perfil (requiere autenticación)
-router.get('/profile', requireAuth, authController.getProfile);
+// Rutas de autenticación
+router.post("/register", registerValidator, register);
+router.post("/login", loginValidator, login);
 
 module.exports = router;
