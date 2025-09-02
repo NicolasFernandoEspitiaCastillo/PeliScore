@@ -43,7 +43,7 @@ const initializeApp = async () => {
     app.get('/', (req, res) => {
       res.json({
         success: true,
-        message: '✅ API de GeekMovies funcionando correctamente 🚀',
+        message: '✅ API de Peliscore funcionando correctamente 🚀',
         endpoints: {
           auth: '/api/auth',
           movies: '/api/movies',
