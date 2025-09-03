@@ -165,11 +165,14 @@ Content-Type: application/json
 
 # 🌐 Frontend
 
-Repositorio: https://github.com/karina2025/PeliScore-FRONTEND
+Repositorio: https://github.com/NicolasFernandoEspitiaCastillo/PeliScore-Front
+
+### Página: 
+http://127.0.0.1:38787/frontend/index.html
 
 Desarrollado en HTML, CSS y JavaScript puro.
 
-Pantallas mínimas:
+### Pantallas mínimas:
 
 Inicio
 
